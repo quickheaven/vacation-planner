@@ -1,4 +1,4 @@
 bedrock-agentcore==0.1.4
 boto3==1.40.35
-crewai[tools]==0.193.2
+crewai[tools]>=1.15.22,<2.0.0
 streamlit==1.49.1
