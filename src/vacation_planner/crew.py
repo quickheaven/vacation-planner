@@ -4,6 +4,10 @@ from crewai_tools import SerperDevTool
 import os
 from crewai import LLM
 
+# ---------- #1 Agentcore imports  --------------------
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+app = BedrockAgentCoreApp()
+
 #Initialize SerperDev Tool
 serper_dev_tool=SerperDevTool(api_key=os.environ.get("SERPER_API_KEY"))
 llm=LLM(model="bedrock/us.amazon.nova-pro-v1:0")
@@ -70,3 +74,49 @@ class VacationPlanner():
             verbose=True,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
+
+    #3 --------@agentcore.entrypoint decorator- Python decorator within the Bedrock AgentCore SDK--------------------
+    #  Function to be executed by the runtime on an event (prompt) & Creates WebServer Endpoints
+    @app.entrypoint
+    def agent_invocation(payload, context):
+        """Handler for agent invocation"""
+        print(f'Payload: {payload}')
+        try: 
+            # Extract user input from payload
+            user_input = payload.get("topic", "Tokyo, Japan")
+            print(f"Processing vacation destination: {user_input}")
+            
+            # Crew Execution - Creates an instance of the VacationPlanner class and run crew method
+            research_crew_instance = VacationPlanner()
+            crew = research_crew_instance.crew()
+            # Starts the sequential agent workflow
+            result = crew.kickoff(inputs={'topic': user_input})
+
+            print("Context:\n-------\n", context)
+            print("Result Raw:\n*******\n", result.raw)
+            
+            # Safely access json_dict if it exists
+            if hasattr(result, 'json_dict'):
+                print("Result JSON:\n*******\n", result.json_dict)
+            
+            return {"result": result.raw}
+            
+        except Exception as e:
+            print(f'Exception occurred: {e}')
+            return {"error": f"An error occurred: {str(e)}"}
+
+    # Local test function
+    def test_local():
+        """Test the crew locally without AgentCore"""
+        try:
+            crew_instance = VacationPlanner()
+            crew = crew_instance.crew()
+            result = crew.kickoff(inputs={'topic': 'Plan a vacation to Germany'})
+            print("Result:", result.raw)
+            return result
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+
+    if __name__ == "__main__":
+        app.run(port=8080)  
