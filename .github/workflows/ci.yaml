@@ -40,4 +40,4 @@ jobs:
 
       # Run tests (if you use pytest)
       - name: Run tests
-        run: uv run pytest --suppress-no-test-exit-code
+        run: uv run pytest
