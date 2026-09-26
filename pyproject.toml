@@ -5,7 +5,8 @@ description = "vacation_planner using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "crewai[tools]>=1.15.22,<2.0.0"
+    "boto3>=1.43.103",
+    "crewai[tools]>=1.15.22,<2.0.0",
 ]
 
 [project.scripts]
@@ -23,3 +24,8 @@ build-backend = "hatchling.build"
 [tool.crewai]
 type = "crew"
 project_id = "879002e0-3f94-479a-9000-0bfe2956874f"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

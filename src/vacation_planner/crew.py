@@ -5,7 +5,7 @@ import os
 from crewai import LLM
 
 #Initialize SerperDev Tool
-serper_dev_tool=SerperDevTool(api_key="")
+serper_dev_tool=SerperDevTool(api_key=os.environ.get("SERPER_API_KEY"))
 llm=LLM(model="bedrock/us.amazon.nova-pro-v1:0")
 
 # If you want to run a snippet of code before or after the crew starts,

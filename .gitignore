@@ -1,3 +1,20 @@
+# Environment & Secrets
 .env
+*.env
+
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
 __pycache__/
+*.pyc
+
+# IDEs & System
+.vscode/
+.idea/
 .DS_Store
+
+# CrewAI generated output artifacts
+report.md
+*.md.tmp
+output/

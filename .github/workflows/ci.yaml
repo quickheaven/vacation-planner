@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build, Lint and Test
+    runs-on: ubuntu-latest
+
+    # Set workflow environment variables matching your required AWS setup
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}      
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install uv and set up automatic dependency caching
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      # Setup Python using uv (matches the version configured in pyproject.toml)
+      - name: Set up Python
+        run: uv python install
+
+      # Install all project dependencies locked in uv.lock
+      - name: Install dependencies
+        run: uv sync --locked
+
+      # Syntax / Code Formatting check (Optional but recommended)
+      - name: Check formatting with Ruff / Compile check
+        run: uv run python -m py_compile src/vacation_planner/main.py
+
+      # Run tests (if you use pytest)
+      - name: Run tests
+        run: uv run pytest
