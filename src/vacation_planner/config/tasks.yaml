@@ -1,10 +1,13 @@
 # Configuration for tasks in the vacation planner project.
 research_task:
   description: >
-    Conduct thorough research about the travel destination {topic}.
-    Find interesting and relevant information to enrich the travel experience.
+        Analyze the user request: "{topic}".
+        If the request is about travel packages, deals, or pricing, use ONLY the Get Travel Packages tool.
+        If the request is about planning an itinerary, attractions, things to do, or general travel information, use ONLY the Search the internet tool.
   expected_output: >
     A list of 15 bullet points highlighting the most important and exciting facts about {topic}.
+    If travel packages were fetched, list the available packages with details for the {topic}.
+    If web search was performed, list key facts, attractions, and travel tips.
   agent: vacation_researcher
 
 reporting_task:
