@@ -18,7 +18,8 @@ def lambda_handler(event, context):
 
     # Invoke the AgentCore runtime with the vacation planner agent
     response = client.invoke_agent_runtime(
-        agentRuntimeArn='arn:aws:bedrock-agentcore:us-east-1:601958100101:runtime/vacation_planner_agent-56Ni6B7ZLQ',
+        # agentRuntimeArn='arn:aws:bedrock-agentcore:us-east-1:601958100101:runtime/vacation_planner_agent-56Ni6B7ZLQ',
+        agentRuntimeArn='arn:aws:bedrock-agentcore:us-east-1:601958100101:runtime/vacation_planner_agent_gateway_tools-7cYLuOEBA8',
         runtimeSessionId=session_id, # Must be 33+ characters
         payload=payload,
         qualifier="DEFAULT" # Optional
