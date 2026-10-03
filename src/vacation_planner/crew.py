@@ -4,6 +4,11 @@ from crewai_tools import SerperDevTool
 import os
 from crewai import LLM
 
+#1 Memory - imports
+import boto3
+import uuid
+from datetime import datetime
+
 #1AgentCore GW imports 
 from crewai.tools import tool
 import requests
@@ -19,6 +24,10 @@ llm=LLM(model="bedrock/us.amazon.nova-pro-v1:0")
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
+
+#2 Memory client initialization
+memory_client = boto3.client('bedrock-agentcore', region_name='us-east-1')
 
 #2 AgentCore Gateway Code
 CLIENT_ID = os.environ["CLIENT_ID"]
@@ -128,12 +137,58 @@ class VacationPlanner():
             # Extract user input from payload
             user_input = payload.get("topic", "Tokyo, Japan")
             print(f"Processing vacation destination: {user_input}")
+
+            #3 Memory - Retrieve past memory
+            session_id = getattr(context, "sessionId", "default_session")
+            
+            previous_events = memory_client.list_events(
+                memoryId='vacation_planner_demo-MgKDiz44Nx',
+                actorId='user',
+                sessionId=session_id,
+                maxResults=3
+            )            
             
             # Crew Execution - Creates an instance of the VacationPlanner class and run crew method
             research_crew_instance = VacationPlanner()
             crew = research_crew_instance.crew()
-            # Starts the sequential agent workflow
-            result = crew.kickoff(inputs={'topic': user_input})
+
+            # Send input to Agent with previous memory
+            events = previous_events.get('events', [])
+            formatted_conversations = []
+            for event in events:
+                formatted_event = {}
+                for key, value in event.items():
+                    if isinstance(value, datetime):
+                        formatted_event[key] = value.isoformat()
+                    else:
+                        formatted_event[key] = value
+                formatted_conversations.append(formatted_event)
+
+            #4 Memory - Starts the sequential agent workflow with memory
+            result = crew.kickoff(inputs={'topic': user_input, 'previous_conversations': formatted_conversations})
+
+            #5 Memory storage - Save current interaction
+            memory_client.create_event(
+                memoryId='vacation_planner_demo-MgKDiz44Nx',
+                actorId='user',
+                sessionId=session_id,
+                eventTimestamp=datetime.utcnow(),
+                payload=[
+                    {
+                        "conversational": {
+                            "content": {"text": user_input},
+                            "role": "USER"
+                        }
+                    },
+                    {
+                        "conversational": {
+                            "content": {"text": result.raw},
+                            "role": "ASSISTANT"
+                        }
+                    }
+                ],
+                clientToken=str(uuid.uuid4())
+            )
 
             print("Context:\n-------\n", context)
             print("Result Raw:\n*******\n", result.raw)
